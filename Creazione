@@ -1,0 +1,170 @@
+create type tipo_squadra as enum(
+    'Club',
+    'Nazionale'
+);
+
+create type Sesso as enum(
+    'Femmina',
+    'Maschio'
+);
+
+create type Piede as enum(
+    'Sinistro',
+    'Destro',
+    'Ambidestro'
+);
+
+create type genere as enum(
+    'Femminile',
+    'Maschile'
+);
+
+create type posizione as enum(
+    'portiere',
+    'difensore',
+    'centrocampista',
+    'attaccante'
+);
+
+create type tipo_trofeo as enum(
+    'individuale',
+    'squadra'
+);
+
+CREATE TABLE Calciatore (
+    CodiceC SERIAL NOT NULL,
+    Nome varchar(20) NOT NULL,
+    Cognome varchar(25) NOT NULL,
+    Piede piede NOT NULL,
+    DataN date NOT NULL,
+    Sesso sesso NOT NULL,
+    DataRitiro DATE,
+    Nazionalità varchar(20) NOT NULL,
+    PRIMARY KEY(CodiceC),
+    FOREIGN KEY (Nazionalità) REFERENCES Nazione(Nomen)
+);
+
+CREATE TABLE Squadra (
+    CodiceS serial NOT NULL,
+    NomeS varchar(20) NOT NULL,
+    Nazionalità varchar(25) NOT NULL,
+    Genere genere,
+    TipoSquadra tipo_squadra,
+    PRIMARY KEY(CodiceS),
+    FOREIGN KEY (Nazionalità) REFERENCES Nazione(Nomen)
+);
+
+CREATE TABLE Feature (
+    NomeF varchar(20) NOT NULL,
+    Descrizione varchar(200),
+    PRIMARY KEY(NomeF)
+);
+
+CREATE TABLE Ruolo (
+    Posizione posizione NOT NULL,
+    PRIMARY KEY(Posizione)
+);
+
+CREATE TABLE Trofeo (
+    NomeT varchar(50) NOT NULL,
+    Descrizione varchar(200),
+    Tipo tipo_trofeo NOT NULL,
+    Genere genere NOT NULL,
+    PRIMARY KEY (NomeT)
+);
+
+CREATE TABLE Competizione (
+    NomeC varchar(50) NOT NULL,
+    Genere genere,
+    TipoCompetizione tipo_squadra,
+    PRIMARY KEY(NomeC)
+);
+
+CREATE TABLE Militanza_Portiere(
+    DataInizio date NOT NULL,
+    DataFine date,
+    GoalFatti int NOT NULL,
+    PartiteGiocate int NOT NULL,
+    GoalSubiti int NOT NULL,
+    CodiceC int NOT NULL,
+    CodiceS int NOT NULL,
+    FOREIGN KEY (CodiceC) REFERENCES Calciatore(CodiceC),
+    FOREIGN KEY (CodiceS) REFERENCES Squadra(CodiceS)
+);
+
+CREATE TABLE Vince_Giocatore(
+    DataVittoria date,
+    CodiceC int NOT NULL,
+    NomeT varchar(25) NOT NULL,
+    FOREIGN KEY (NomeT) REFERENCES Trofeo(NomeT),
+    FOREIGN KEY (CodiceC) REFERENCES Calciatore(CodiceC)
+);
+
+CREATE TABLE Vince_Squadra(
+    DataVittoria date,
+    CodiceS int NOT NULL,
+    NomeT varchar(25) NOT NULL,
+    FOREIGN KEY (NomeT) REFERENCES Trofeo(NomeT),
+    FOREIGN KEY (CodiceS) REFERENCES Squadra(CodiceS)
+);
+
+CREATE TABLE Stagione_Squadra(
+    InizioPartecipazione date NOT NULL,
+    FinePartecipazione date,
+    NomeC varchar(25) NOT NULL,
+    CodiceS int NOT NULL,
+    FOREIGN KEY (CodiceS) REFERENCES Squadra(CodiceS),
+    FOREIGN KEY (NomeC) REFERENCES Competizione(NomeC)
+);
+
+CREATE TABLE Militanza_Calciatore(
+    DataInizio date NOT NULL,
+    DataFine date,
+    GoalFatti int NOT NULL,
+    PartiteGiocate int NOT NULL,
+    CodiceC int NOT NULL,
+    CodiceS int NOT NULL,
+    FOREIGN KEY (CodiceC) REFERENCES Calciatore(CodiceC),
+    FOREIGN KEY (CodiceS) REFERENCES Squadra(CodiceS)
+);
+
+CREATE TABLE Ricopre (
+    CodiceC int NOT NULL,
+    Ruolo posizione NOT NULL,
+    FOREIGN KEY (CodiceC) REFERENCES Calciatore(CodiceC),
+    FOREIGN KEY (Ruolo) REFERENCES Ruolo(Posizione),
+    PRIMARY KEY (CodiceC, Ruolo)
+);
+
+CREATE TABLE PossiedeF (
+    CodiceC int NOT NULL,
+    NomeF varchar(15) NOT NULL,
+    FOREIGN KEY (CodiceC) REFERENCES Calciatore(CodiceC),
+    FOREIGN KEY (NomeF) REFERENCES Feature(NomeF),
+    PRIMARY KEY (CodiceC, NomeF)
+);
+
+CREATE TABLE Assegna (
+    NomeT varchar(25) NOT NULL,
+    NomeC varchar(25) NOT NULL,
+    FOREIGN KEY (NomeT) REFERENCES Trofeo(NomeT),
+    FOREIGN KEY (NomeC) REFERENCES Competizione(NomeC)
+);
+
+CREATE TABLE Accetta (
+    NomeC varchar(25) NOT NULL,
+    NomeN varchar(25) NOT NULL,
+    FOREIGN KEY (NomeN) REFERENCES Nazione(Nomen),
+    FOREIGN KEY (NomeC) REFERENCES Competizione(NomeC)
+);
+
+ALTER TABLE squadra ADD CONSTRAINT squadtype UNIQUE(nomes, genere);
+ALTER TABLE militanza_calciatore ADD CONSTRAINT didf_calciatore CHECK (data_fine > data_inizio);
+ALTER TABLE militanza_portiere ADD CONSTRAINT didf_portiere CHECK (data_fine > data_inizio);
+ALTER TABLE militanza_portiere ADD CONSTRAINT unique_militanza_portiere UNIQUE(codicec, codices, data_inizio);
+ALTER TABLE militanza_calciatore ADD CONSTRAINT unique_militanza_calciatore UNIQUE(codicec, codices, data_inizio);
+ALTER TABLE vince_squadra ADD CONSTRAINT unique_vince_squadra UNIQUE(data_vittoria, nomet);
+ALTER TABLE vince_giocatore ADD CONSTRAINT unique_vince_giocatore UNIQUE(data_vittoria, nomet);
+
+
+
